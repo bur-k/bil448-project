@@ -26,13 +26,13 @@ def passwordCheck():
     passwordHash = getUser(session['username'])['passwordHash']
     form.salt = getUser(session['username'])['salt']
 
-    data = bcrypt.gensalt()
+    data = b'$2b$12$WswVRTm8mGaah6Kp58kQju' # bcrypt.gensalt()
     print(data)
     key = passwordHash[:16]
     cipher = AES.new(key, AES.MODE_CTR)
     ct_bytes = cipher.encrypt(data)
-    nonce = b64encode(cipher.nonce).hex()
-    ct = b64encode(ct_bytes).hex()
+    nonce = b64encode(cipher.nonce).decode()
+    ct = b64encode(ct_bytes).decode()
     form.challenge = json.dumps({'nonce': nonce, 'ciphertext': ct})
     print(form.challenge)
 

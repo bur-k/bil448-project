@@ -1,13 +1,10 @@
-from base64 import b64encode
 import json
 
-from Crypto.Cipher import AES
 from flask import session, redirect, url_for, render_template, request
 from . import main
 from .forms import *
 from .users import *
-import bcrypt
-
+from .functions import *
 
 @main.route('/', methods=['GET', 'POST'])
 def index():
@@ -26,15 +23,14 @@ def passwordCheck():
     passwordHash = getUser(session['username'])['passwordHash']
     form.salt = getUser(session['username'])['salt']
 
-    data = b'$2b$12$WswVRTm8mGaah6Kp58kQju' # bcrypt.gensalt()
-    print(data)
-    key = passwordHash[:16]
-    cipher = AES.new(key, AES.MODE_CTR)
-    ct_bytes = cipher.encrypt(data)
-    nonce = b64encode(cipher.nonce).decode()
-    ct = b64encode(ct_bytes).decode()
-    form.challenge = json.dumps({'nonce': nonce, 'ciphertext': ct})
-    print(form.challenge)
+    data = '$2b$12$WswVRTm8mGaah6Kp58kQju'
+    print("data", data)
+    key = passwordHash.encode()[:16]
+    print("key", key)
+    key = key.hex()
+    print("key", key)
+    ciphertext = encryptAES(key, data)
+    form.challenge = ciphertext
 
     if form.validate_on_submit():
         print("")

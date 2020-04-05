@@ -3,8 +3,12 @@ from wtforms.fields import StringField, SubmitField
 from wtforms.validators import Required
 
 
-class LoginForm(Form):
-    """Accepts a nickname and a room."""
-    name = StringField('Name', validators=[Required()])
-    room = StringField('Room', validators=[Required()])
-    submit = SubmitField('Enter Chatroom')
+class UsernameForm(Form):
+    username = StringField('Username', validators=[Required()])
+    submit = SubmitField('Send')
+
+
+class PasswordForm(Form):
+    passwordHash = ""
+    salt = ""
+    submit = SubmitField('Send')

@@ -1,20 +1,34 @@
 from flask import session, redirect, url_for, render_template, request
 from . import main
-from .forms import LoginForm
+from .forms import *
+from .users import *
+import bcrypt
 
 
 @main.route('/', methods=['GET', 'POST'])
 def index():
-    """Login form to enter a room."""
-    form = LoginForm()
+    form = UsernameForm()
     if form.validate_on_submit():
-        session['name'] = form.name.data
-        session['room'] = form.room.data
-        return redirect(url_for('.chat'))
+        session['username'] = form.username.data
+        return redirect(url_for('.passwordCheck'))
     elif request.method == 'GET':
-        form.name.data = session.get('name', '')
-        form.room.data = session.get('room', '')
+        form.username.data = session.get('username', '')
     return render_template('index.html', form=form)
+
+
+@main.route('/passwordCheck', methods=['GET', 'POST'])
+def passwordCheck():
+    form = PasswordForm()
+    form.passwordHash = getUser(session['username'])['passwordHash']
+    form.salt = getUser(session['username'])['salt']
+    if form.validate_on_submit():
+        if bcrypt.checkpw("pass1", form.responsePasswordHash.encode('utf-8')):
+            return form.responsePasswordHash
+        else:
+            return "no match"
+    elif request.method == 'GET':
+        return render_template('passwordCheck.html', form=form)
+    return render_template('passwordCheck.html', form=form)
 
 
 @main.route('/chat')

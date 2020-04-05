@@ -25,4 +25,4 @@ def getUser(username):
 def generateUsers():
     for i in range(0, 3):
         salt = bcrypt.gensalt()
-        createUser("user" + str(i), bcrypt.hashpw(("pass"+str(i)).encode('utf-8'), salt).decode("utf-8"), salt.decode('utf-8'))
+        createUser("user" + str(i), bcrypt.hashpw(("pass"+str(i)).encode(), salt), salt.decode())

@@ -1,3 +1,7 @@
+from base64 import b64encode
+import json
+
+from Crypto.Cipher import AES
 from flask import session, redirect, url_for, render_template, request
 from . import main
 from .forms import *
@@ -19,13 +23,21 @@ def index():
 @main.route('/passwordCheck', methods=['GET', 'POST'])
 def passwordCheck():
     form = PasswordForm()
-    form.passwordHash = getUser(session['username'])['passwordHash']
+    passwordHash = getUser(session['username'])['passwordHash']
     form.salt = getUser(session['username'])['salt']
+
+    data = bcrypt.gensalt()
+    print(data)
+    key = passwordHash[:16]
+    cipher = AES.new(key, AES.MODE_CTR)
+    ct_bytes = cipher.encrypt(data)
+    nonce = b64encode(cipher.nonce).hex()
+    ct = b64encode(ct_bytes).hex()
+    form.challenge = json.dumps({'nonce': nonce, 'ciphertext': ct})
+    print(form.challenge)
+
     if form.validate_on_submit():
-        if bcrypt.checkpw("pass1", form.responsePasswordHash.encode('utf-8')):
-            return form.responsePasswordHash
-        else:
-            return "no match"
+        print("")
     elif request.method == 'GET':
         return render_template('passwordCheck.html', form=form)
     return render_template('passwordCheck.html', form=form)

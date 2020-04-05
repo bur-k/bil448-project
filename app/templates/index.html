@@ -1,14 +1,9 @@
 <html>
-<head>
-    <title>Flask-SocketIO-Chat</title>
-</head>
 <body>
-<h1>Flask-SocketIO-Chat</h1>
-
 <form method="POST">
     {{ form.hidden_tag() }}
-    {{ form.username.label }}: {{ form.username() }} {% for error in form.username.errors %}{{ error }}{% endfor %}
-    {{ form.submit() }}
+    <input id="username" name="username" required type="text" placeholder="username" value="">
+    <input id="submit" name="submit" type="submit" value="Send">
 </form>
 </body>
 </html>

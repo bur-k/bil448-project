@@ -1,14 +1,14 @@
-from flask_wtf import Form
+from flask_wtf import FlaskForm
 from wtforms.fields import StringField, SubmitField
 from wtforms.validators import Required
 
 
-class UsernameForm(Form):
+class UsernameForm(FlaskForm):
     username = StringField('Username', validators=[Required()])
     submit = SubmitField('Send')
 
 
-class PasswordForm(Form):
-    passwordHash = ""
+class PasswordForm(FlaskForm):
     salt = ""
+    challenge = ""
     submit = SubmitField('Send')

@@ -30,7 +30,7 @@ def generateUsers(): # generates user in given range
         createUser("user" + str(i), bcrypt.hashpw(("pass" + str(i)).encode(), salt).decode(), salt.decode())
 
 
-def getRoom(room): # if room_key exists return given room otherwise creates and returns
+def getRoom(room): # if room_key exists returns given room otherwise creates and returns
     if room in rooms:
         return rooms[room]
     else:

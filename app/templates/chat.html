@@ -9,13 +9,14 @@
     <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js"></script>
 
     <script>
+        //calculate hmac of message using room key
         function getHmac(message) {
             var hash = CryptoJS.HmacSHA256(message, room_key);
             var hashInBase64 = CryptoJS.enc.Base64.stringify(hash);
             return hashInBase64;
 
         }
-
+        //Encrypt message,room and hmac of message with aes using room key
         function sendMessage(payload) {
             secret_message = aes256Encrypt(room_key, JSON.stringify({
                 hmac: getHmac(payload),
@@ -24,7 +25,7 @@
             }));
             return {msg: secret_message};
         }
-
+        //Decrypt message that encrypted with aes
         function getMessage(message) {
             return JSON.parse(aes256Decrypt(room_key, message));
         }
@@ -72,7 +73,9 @@
                 $('#chat').scrollTop($('#chat')[0].scrollHeight);
 
             });
+            //If message is corrupted send information to room, else send decrypted message to room
             socket.on('message', function (data) {
+                
                 if (data.msg == "Corrupted message") {
                     $('#chat').val($('#chat').val() + data.username + data.msg + '\n');
                 } else
@@ -81,6 +84,7 @@
                 $('#chat').scrollTop($('#chat')[0].scrollHeight);
 
             });
+            //Encrypt retrieved message
             $('#text').keypress(function (e) {
                 var code = e.keyCode || e.which;
                 if (code == 13) {

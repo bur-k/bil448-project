@@ -23,10 +23,13 @@ def passwordCheck():
     form = PasswordForm()
     if form.validate_on_submit():
         if "challenge" in session.keys():
-            session['session_key'] = decryptAES(session['challenge'], form.challenge.data)
-            return redirect(url_for('.chat'))
-        else:
-            return redirect(url_for('.passwordCheck'))
+            session['session_key'] = decryptAES(session['challenge'], form.challenge.data).decode()
+            room = decryptAES(session['challenge'], form.room.data).decode()
+            print(room)
+            if int(room) in range(0, 10):
+                session['room'] = room
+                return redirect(url_for('.chat'))
+        return redirect(url_for('.passwordCheck'))
     elif request.method == 'GET':
         passwordHash = getUser(session['username'])['passwordHash']
         form.salt = getUser(session['username'])['salt']
@@ -34,7 +37,6 @@ def passwordCheck():
         session['challenge'] = data
         key = hashlib.sha256(passwordHash.encode()).hexdigest()[:32]
         form.challenge = encryptAES(key, data).decode()
-        return render_template('passwordCheck.html', form=form)
     return render_template('passwordCheck.html', form=form)
 
 

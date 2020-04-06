@@ -13,28 +13,65 @@
                 socket.on('status', function(data) {
                     $('#chat').val($('#chat').val() + '<' + data.msg + '>\n');
                     $('#chat').scrollTop($('#chat')[0].scrollHeight);
+
                 });
                 socket.on('message', function(data) {
                     $('#chat').val($('#chat').val() + data.msg + '\n');
                     $('#chat').scrollTop($('#chat')[0].scrollHeight);
+
                 });
                 $('#text').keypress(function(e) {
                     var code = e.keyCode || e.which;
                     if (code == 13) {
                         text = $('#text').val();
                         $('#text').val('');
-                        socket.emit('text', {msg: text});
+                        //socket.emit('text', {msg: text});
+                        socket.emit('ciphers', sendMessage(text));
                     }
                 });
             });
             function leave_room() {
                 socket.emit('left', {}, function() {
                     socket.disconnect();
-
                     // go back to the login page
                     window.location.href = "{{ url_for('main.index') }}";
                 });
             }
+        </script>
+        <script>
+            function getHmac(message)
+            {
+                var hash = CryptoJS.HmacSHA256(message, Cookies.get('session_key'));
+                var hashInBase64 = CryptoJS.enc.Base64.stringify(hash);
+                console.log(hashInBase64);
+            }
+            function sendMessage(payload)
+            {
+                secret_message = aes256Encrypt(Cookies.get('session_key'), JSON.stringify({hmac: getHmac(payload), room: room, payload: payload}));
+                return {username: session.get('username'), secret_message: secret_message};
+            }
+            function getMessage(message)
+            {
+                return JSON.parse(aes256Decrypt(Cookies.get('session_key'), message));
+            }
+            function aes256Encrypt(key, text)
+            {
+                var key_256  = parseHexString(key);
+                var textBytes = aesjs.utils.utf8.toBytes(text);
+                var aesCtr = new aesjs.ModeOfOperation.ctr(key_256, new aesjs.Counter(5));
+                var encryptedBytes = aesCtr.encrypt(textBytes);
+                var encryptedHex = aesjs.utils.hex.fromBytes(encryptedBytes);
+                return encryptedHex;
+            }
+            function parseHexString(str) {
+                var result = [];
+                while (str.length >= 2) {
+                    result.push(parseInt(str.substring(0, 2), 16));
+                    str = str.substring(2, str.length);
+                }
+                return result;
+             }
+
         </script>
     </head>
     <body>

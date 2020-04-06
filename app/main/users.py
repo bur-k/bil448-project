@@ -16,10 +16,9 @@ def createUser(username, passwordHash, salt):
 def getUser(username):
     if username in users:
         print(users[username])
-        return users[username]
+        return True, users[username]
     else:
-        print("username not found in users")
-        raise Exception(username)
+        return False, ""
 
 
 def generateUsers():

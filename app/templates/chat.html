@@ -1,110 +1,107 @@
 <html>
-    <head>
-        <title>Flask-SocketIO-Chat: {{ room }}</title>
-         <script src="https://cdn.jsdelivr.net/npm/js-cookie@rc/dist/js.cookie.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/crypto-js.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/hmac-sha256.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/enc-base64.min.js"></script>
-        <script type="text/javascript" src="https://cdn.rawgit.com/ricmoo/aes-js/e27b99df/index.js"></script>
+<head>
+    <title>Flask-SocketIO-Chat: {{ room }}</title>
+    <script src="https://cdn.jsdelivr.net/npm/js-cookie@rc/dist/js.cookie.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/crypto-js.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/hmac-sha256.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/enc-base64.min.js"></script>
+    <script type="text/javascript" src="https://cdn.rawgit.com/ricmoo/aes-js/e27b99df/index.js"></script>
 
-        <script type="text/javascript" src="//code.jquery.com/jquery-1.4.2.min.js"></script>
-        <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js"></script>
-        <script type="text/javascript" charset="utf-8">
-            const room = "{{ room }}";
-            var socket;
-            $(document).ready(function(){
-                socket = io.connect('http://' + document.domain + ':' + location.port + '/chat');
-                socket.on('connect', function() {
-                    socket.emit('joined', {});
-                });
-                socket.on('status', function(data) {
-                    $('#chat').val($('#chat').val() + '<' + data.msg + '>\n');
-                    $('#chat').scrollTop($('#chat')[0].scrollHeight);
-
-                });
-                socket.on('message', function(data) {
-                    console.log(data)
-                    console.log(data.msg)
-                    if (data.msg=="Corrupted message"){
-                        $('#chat').val($('#chat').val() + data.username + data.msg + '\n');
-                    }
-                    else
-                        $('#chat').val($('#chat').val() + data.username + getMessage(data.msg).payload+ '\n');
-
-                    $('#chat').scrollTop($('#chat')[0].scrollHeight);
-
-                });
-                $('#text').keypress(function(e) {
-                    var code = e.keyCode || e.which;
-                    if (code == 13) {
-                        text = $('#text').val();
-                        $('#text').val('');
-                        //socket.emit('text', {msg: text});
-                        socket.emit('text', sendMessage(text));
-                    }
-                });
+    <script type="text/javascript" src="//code.jquery.com/jquery-1.4.2.min.js"></script>
+    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js"></script>
+    <script type="text/javascript" charset="utf-8">
+        const room = "{{ room }}";
+        var socket;
+        $(document).ready(function () {
+            socket = io.connect('http://' + document.domain + ':' + location.port + '/chat');
+            socket.on('connect', function () {
+                socket.emit('joined', {});
             });
-            function leave_room() {
-                socket.emit('left', {}, function() {
-                    socket.disconnect();
-                    // go back to the login page
-                    window.location.href = "{{ url_for('main.index') }}";
-                });
-            }
-        </script>
-        <script>
-            function getHmac(message)
-            {
-                var hash = CryptoJS.HmacSHA256(message, Cookies.get('session_key'));
-                var hashInBase64 = CryptoJS.enc.Base64.stringify(hash);
-                console.log(hashInBase64);
-                return hashInBase64;
+            socket.on('status', function (data) {
+                $('#chat').val($('#chat').val() + '<' + data.msg + '>\n');
+                $('#chat').scrollTop($('#chat')[0].scrollHeight);
 
-            }
-            function sendMessage(payload)
-            {
-                console.log(room);
-                secret_message = aes256Encrypt(Cookies.get('session_key'), JSON.stringify({hmac: getHmac(payload), room: room, payload: payload}));
-                console.log(secret_message);
+            });
+            socket.on('message', function (data) {
+                if (data.msg == "Corrupted message") {
+                    $('#chat').val($('#chat').val() + data.username + data.msg + '\n');
+                } else
+                    $('#chat').val($('#chat').val() + data.username + getMessage(data.msg).payload + '\n');
 
-                return {msg: secret_message};
-            }
-            function getMessage(message)
-            {
-                return JSON.parse(aes256Decrypt(Cookies.get('session_key'), message));
-            }
-            function aes256Encrypt(key, text)
-            {
-                var key_256  = parseHexString(key);
-                var textBytes = aesjs.utils.utf8.toBytes(text);
-                var aesCtr = new aesjs.ModeOfOperation.ctr(key_256, new aesjs.Counter(5));
-                var encryptedBytes = aesCtr.encrypt(textBytes);
-                var encryptedHex = aesjs.utils.hex.fromBytes(encryptedBytes);
-                return encryptedHex;
-            }
-            function aes256Decrypt(key, ciphertext) {
-                var key_256 = parseHexString(key);
-                var encryptedBytes = aesjs.utils.hex.toBytes(ciphertext);
-                var aesCtr = new aesjs.ModeOfOperation.ctr(key_256, new aesjs.Counter(5));
-                var decryptedBytes = aesCtr.decrypt(encryptedBytes);
-                var decryptedText = aesjs.utils.utf8.fromBytes(decryptedBytes);
-                return decryptedText;
-            }
-            function parseHexString(str) {
-                var result = [];
-                while (str.length >= 2) {
-                    result.push(parseInt(str.substring(0, 2), 16));
-                    str = str.substring(2, str.length);
+                $('#chat').scrollTop($('#chat')[0].scrollHeight);
+
+            });
+            $('#text').keypress(function (e) {
+                var code = e.keyCode || e.which;
+                if (code == 13) {
+                    text = $('#text').val();
+                    $('#text').val('');
+                    socket.emit('text', sendMessage(text));
                 }
-                return result;
-             }
+            });
+        });
 
-        </script>
-    </head>
-    <body>
-        <h1>Flask-SocketIO-Chat: {{ room }}</h1>
-        <textarea id="chat" cols="80" rows="20"></textarea><br><br>
-        <input id="text" size="80" placeholder="Enter your message here"><br><br>
-        <a href="#" onclick="leave_room();">Leave this room</a>
-    </body>
+        function leave_room() {
+            socket.emit('left', {}, function () {
+                socket.disconnect();
+                window.location.href = "{{ url_for('main.index') }}";
+            });
+        }
+    </script>
+    <script>
+        function getHmac(message) {
+            var hash = CryptoJS.HmacSHA256(message, Cookies.get('session_key'));
+            var hashInBase64 = CryptoJS.enc.Base64.stringify(hash);
+            return hashInBase64;
+
+        }
+
+        function sendMessage(payload) {
+            secret_message = aes256Encrypt(Cookies.get('session_key'), JSON.stringify({
+                hmac: getHmac(payload),
+                room: room,
+                payload: payload
+            }));
+            return {msg: secret_message};
+        }
+
+        function getMessage(message) {
+            return JSON.parse(aes256Decrypt(Cookies.get('session_key'), message));
+        }
+
+        function aes256Encrypt(key, text) {
+            var key_256 = parseHexString(key);
+            var textBytes = aesjs.utils.utf8.toBytes(text);
+            var aesCtr = new aesjs.ModeOfOperation.ctr(key_256, new aesjs.Counter(5));
+            var encryptedBytes = aesCtr.encrypt(textBytes);
+            var encryptedHex = aesjs.utils.hex.fromBytes(encryptedBytes);
+            return encryptedHex;
+        }
+
+        function aes256Decrypt(key, ciphertext) {
+            var key_256 = parseHexString(key);
+            var encryptedBytes = aesjs.utils.hex.toBytes(ciphertext);
+            var aesCtr = new aesjs.ModeOfOperation.ctr(key_256, new aesjs.Counter(5));
+            var decryptedBytes = aesCtr.decrypt(encryptedBytes);
+            var decryptedText = aesjs.utils.utf8.fromBytes(decryptedBytes);
+            return decryptedText;
+        }
+
+        function parseHexString(str) {
+            var result = [];
+            while (str.length >= 2) {
+                result.push(parseInt(str.substring(0, 2), 16));
+                str = str.substring(2, str.length);
+            }
+            return result;
+        }
+
+    </script>
+</head>
+<body>
+<h1>Flask-SocketIO-Chat: {{ room }}</h1>
+<textarea id="chat" cols="80" rows="20"></textarea><br><br>
+<input id="text" size="80" placeholder="Enter your message here"><br><br>
+<a href="#" onclick="leave_room();">Leave this room</a>
+</body>
 </html>

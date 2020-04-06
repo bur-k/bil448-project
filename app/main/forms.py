@@ -5,10 +5,7 @@ from wtforms.validators import Required
 
 class UsernameForm(FlaskForm):
     username = StringField('Username', validators=[Required()])
-
     submit = SubmitField('Send')
-
-
 
 
 class PasswordForm(FlaskForm):

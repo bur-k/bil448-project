@@ -45,8 +45,6 @@ def passwordCheck():
 
 @main.route('/chat')
 def chat():
-    """Chat room. The user's name and room must be stored in
-    the session."""
     username = session.get('username', '')
     room = session.get('room', '')
     if username == '' or room == '':

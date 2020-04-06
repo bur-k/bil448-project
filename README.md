@@ -1,8 +1,11 @@
-Flask-SocketIO-Chat
-===================
+burak koc - 161120008
+tuba nur yildiz - 161120011
 
-A simple chat application that demonstrates how to structure a Flask-SocketIO application.
+pip3 install -r requirements.txt
+python3 chat.py
 
-To run this application install the requirements in a virtual environment, run `python chat.py` and visit `http://localhost:5000` on one or more browser tabs.
+user1:pass1
+user2:pass2
+user3:pass3
 
-    $ python chat.py
+http://localhost:5000 

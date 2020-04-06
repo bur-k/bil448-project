@@ -5,7 +5,6 @@ from wtforms.validators import Required
 
 class UsernameForm(FlaskForm):
     username = StringField('Username', validators=[Required()])
-    #room = StringField('room', validators=[Required()])
 
     submit = SubmitField('Send')
 

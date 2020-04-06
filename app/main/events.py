@@ -1,6 +1,8 @@
 from flask import session
 from flask_socketio import emit, join_room, leave_room
 from .. import socketio
+from .functions import *
+import json
 
 
 @socketio.on('joined', namespace='/chat')
@@ -17,8 +19,16 @@ def text(message):
     """Sent by a client when the user entered a new message.
     The message is sent to all people in the room."""
     room = session.get('room')
-    emit('message', {'msg': session.get('username') + ':' + message['msg']}, room=room)
-
+    new_message = decryptAES(session.get('session_key'), message['msg']).decode()
+    json_resp = json.loads(new_message)
+    #print(new_message)
+    signature = getHmac(session.get('session_key'), json_resp['payload'])
+    #print(signature)
+    #print(json_resp['hmac'])
+    if signature == json_resp['hmac']:
+        emit('message', {'username': session.get('username') + ':', 'msg': message['msg']}, room=room)
+    else:
+        emit('message', {'username': session.get('username') + ':',  'msg': 'Corrupted message'}, room=room)
 
 @socketio.on('left', namespace='/chat')
 def left(message):

@@ -2,9 +2,15 @@
     <head>
         <title>Flask-SocketIO-Chat: {{ room }}</title>
          <script src="https://cdn.jsdelivr.net/npm/js-cookie@rc/dist/js.cookie.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/crypto-js.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/hmac-sha256.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/enc-base64.min.js"></script>
+        <script type="text/javascript" src="https://cdn.rawgit.com/ricmoo/aes-js/e27b99df/index.js"></script>
+
         <script type="text/javascript" src="//code.jquery.com/jquery-1.4.2.min.js"></script>
         <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js"></script>
         <script type="text/javascript" charset="utf-8">
+            const room = "{{ room }}";
             var socket;
             $(document).ready(function(){
                 socket = io.connect('http://' + document.domain + ':' + location.port + '/chat');
@@ -17,7 +23,14 @@
 
                 });
                 socket.on('message', function(data) {
-                    $('#chat').val($('#chat').val() + data.msg + '\n');
+                    console.log(data)
+                    console.log(data.msg)
+                    if (data.msg=="Corrupted message"){
+                        $('#chat').val($('#chat').val() + data.username + data.msg + '\n');
+                    }
+                    else
+                        $('#chat').val($('#chat').val() + data.username + getMessage(data.msg).payload+ '\n');
+
                     $('#chat').scrollTop($('#chat')[0].scrollHeight);
 
                 });
@@ -27,7 +40,7 @@
                         text = $('#text').val();
                         $('#text').val('');
                         //socket.emit('text', {msg: text});
-                        socket.emit('ciphers', sendMessage(text));
+                        socket.emit('text', sendMessage(text));
                     }
                 });
             });
@@ -45,12 +58,16 @@
                 var hash = CryptoJS.HmacSHA256(message, Cookies.get('session_key'));
                 var hashInBase64 = CryptoJS.enc.Base64.stringify(hash);
                 console.log(hashInBase64);
+                return hashInBase64;
+
             }
             function sendMessage(payload)
             {
+                console.log(room);
                 secret_message = aes256Encrypt(Cookies.get('session_key'), JSON.stringify({hmac: getHmac(payload), room: room, payload: payload}));
                 console.log(secret_message);
-                return {username: session.get('username'), secret_message: secret_message};
+
+                return {msg: secret_message};
             }
             function getMessage(message)
             {
@@ -64,6 +81,14 @@
                 var encryptedBytes = aesCtr.encrypt(textBytes);
                 var encryptedHex = aesjs.utils.hex.fromBytes(encryptedBytes);
                 return encryptedHex;
+            }
+            function aes256Decrypt(key, ciphertext) {
+                var key_256 = parseHexString(key);
+                var encryptedBytes = aesjs.utils.hex.toBytes(ciphertext);
+                var aesCtr = new aesjs.ModeOfOperation.ctr(key_256, new aesjs.Counter(5));
+                var decryptedBytes = aesCtr.decrypt(encryptedBytes);
+                var decryptedText = aesjs.utils.utf8.fromBytes(decryptedBytes);
+                return decryptedText;
             }
             function parseHexString(str) {
                 var result = [];

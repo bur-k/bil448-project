@@ -1,6 +1,7 @@
 <html>
     <head>
         <title>Flask-SocketIO-Chat: {{ room }}</title>
+         <script src="https://cdn.jsdelivr.net/npm/js-cookie@rc/dist/js.cookie.min.js"></script>
         <script type="text/javascript" src="//code.jquery.com/jquery-1.4.2.min.js"></script>
         <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js"></script>
         <script type="text/javascript" charset="utf-8">
@@ -48,6 +49,7 @@
             function sendMessage(payload)
             {
                 secret_message = aes256Encrypt(Cookies.get('session_key'), JSON.stringify({hmac: getHmac(payload), room: room, payload: payload}));
+                console.log(secret_message);
                 return {username: session.get('username'), secret_message: secret_message};
             }
             function getMessage(message)

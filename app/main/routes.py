@@ -4,6 +4,7 @@ from . import main
 from .forms import *
 from .users import *
 from .functions import *
+import json
 
 
 @main.route('/', methods=['GET', 'POST'])
@@ -21,7 +22,8 @@ def index():
 def passwordCheck():
     form = PasswordForm()
     if form.validate_on_submit():
-        if "challenge" in session.keys() and session['challenge'] == form.challenge.data:
+        if "challenge" in session.keys():
+            session['session_key'] = decryptAES(session['challenge'], form.challenge.data)
             return redirect(url_for('.chat'))
         else:
             return redirect(url_for('.passwordCheck'))

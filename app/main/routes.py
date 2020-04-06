@@ -7,22 +7,22 @@ import json
 
 
 @main.route('/', methods=['GET', 'POST'])
-def index():
+def index(): # index page, the displayed page when localhost:5000/ loaded
     form = UsernameForm()
-    if form.validate_on_submit():
+    if form.validate_on_submit(): # checks form data
         is_user_exists, user = getUser(form.username.data)
         if is_user_exists:
             session['username'] = form.username.data
-            return redirect(url_for('.passwordCheck'))
+            return redirect(url_for('.passwordCheck')) # if username has a match redirect to passwordCheck page
     elif request.method == 'GET':
         form.username.data = session.get('username', '')
     return render_template('index.html', form=form)
 
 
 @main.route('/passwordCheck', methods=['GET', 'POST'])
-def passwordCheck():
+def passwordCheck(): # 
     form = PasswordForm()
-    user = getUser(session['username'])[1]
+    user = getUser(session['username'])[1] # get 
     if form.validate_on_submit():
         if "challenge" in session.keys():
             response = decryptAES(session['challenge'], form.response.data).decode()

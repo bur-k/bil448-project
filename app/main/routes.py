@@ -11,8 +11,10 @@ import json
 def index():
     form = UsernameForm()
     if form.validate_on_submit():
-        session['username'] = form.username.data
-        return redirect(url_for('.passwordCheck'))
+        is_user_exists, user = getUser(form.username.data)
+        if is_user_exists:
+            session['username'] = form.username.data
+            return redirect(url_for('.passwordCheck'))
     elif request.method == 'GET':
         form.username.data = session.get('username', '')
     return render_template('index.html', form=form)
@@ -21,18 +23,19 @@ def index():
 @main.route('/passwordCheck', methods=['GET', 'POST'])
 def passwordCheck():
     form = PasswordForm()
+    user = getUser(session['username'])[1]
     if form.validate_on_submit():
         if "challenge" in session.keys():
-            session['session_key'] = decryptAES(session['challenge'], form.challenge.data).decode()
-            room = decryptAES(session['challenge'], form.room.data).decode()
-            print(room)
-            if int(room) in range(0, 10):
+            response = decryptAES(session['challenge'], form.response.data).decode()
+            json_resp = json.loads(response)
+            room = int(json_resp['room'])
+            session['session_key'] = json_resp['session_key']
+            if room in range(0, 10):
                 session['room'] = room
                 return redirect(url_for('.chat'))
-        return redirect(url_for('.passwordCheck'))
-    elif request.method == 'GET':
-        passwordHash = getUser(session['username'])['passwordHash']
-        form.salt = getUser(session['username'])['salt']
+    elif request.method == 'GET' or request.method == 'POST':
+        passwordHash = user['passwordHash']
+        form.salt = user['salt']
         data = hashlib.sha256(bcrypt.gensalt()).hexdigest()[:32]
         session['challenge'] = data
         key = hashlib.sha256(passwordHash.encode()).hexdigest()[:32]

@@ -1,6 +1,8 @@
+import hashlib
 import bcrypt
 
 users = {}
+rooms = {}
 
 
 def createUser(username, passwordHash, salt):
@@ -26,3 +28,11 @@ def generateUsers():
     for i in range(1, 4):
         salt = bcrypt.gensalt()
         createUser("user" + str(i), bcrypt.hashpw(("pass" + str(i)).encode(), salt).decode(), salt.decode())
+
+
+def getRoom(room):
+    if room in rooms:
+        return rooms[room]
+    else:
+        rooms[room] = {"room": room, "room_key": hashlib.sha256(bcrypt.gensalt()).hexdigest()[:64]}
+        return rooms[room]

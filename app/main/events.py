@@ -15,9 +15,9 @@ def joined(message):
 @socketio.on('text', namespace='/chat')
 def text(message):
     room = session.get('room')
-    new_message = decryptAES(session.get('session_key'), message['msg']).decode()
+    new_message = decryptAES(session.get('room_key'), message['msg']).decode()
     json_resp = json.loads(new_message)
-    signature = getHmac(session.get('session_key'), json_resp['payload'])
+    signature = getHmac(session.get('room_key'), json_resp['payload'])
     if signature == json_resp['hmac']:
         emit('message', {'username': session.get('username') + ':', 'msg': message['msg']}, room=room)
     else:

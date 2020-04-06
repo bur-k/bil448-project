@@ -1,5 +1,4 @@
-import hashlib
-from flask import session, redirect, url_for, render_template, request
+from flask import session, redirect, url_for, render_template, request, jsonify
 from . import main
 from .forms import *
 from .users import *
@@ -36,9 +35,9 @@ def passwordCheck():
     elif request.method == 'GET' or request.method == 'POST':
         passwordHash = user['passwordHash']
         form.salt = user['salt']
-        data = hashlib.sha256(bcrypt.gensalt()).hexdigest()[:32]
+        data = hashlib.sha256(bcrypt.gensalt()).hexdigest()[:64]
         session['challenge'] = data
-        key = hashlib.sha256(passwordHash.encode()).hexdigest()[:32]
+        key = hashlib.sha256(passwordHash.encode()).hexdigest()[:64]
         form.challenge = encryptAES(key, data).decode()
     return render_template('passwordCheck.html', form=form)
 
@@ -46,7 +45,10 @@ def passwordCheck():
 @main.route('/chat')
 def chat():
     username = session.get('username', '')
-    room = session.get('room', '')
+    room = getRoom(session.get('room', ''))
+    session['room_key'] = room["room_key"]
+    room = encryptAES(session['session_key'], room['room_key']).decode()
+
     if username == '' or room == '':
         return redirect(url_for('.index'))
     return render_template('chat.html', username=username, room=room)

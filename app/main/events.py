@@ -6,14 +6,14 @@ import json
 
 
 @socketio.on('joined', namespace='/chat')
-def joined(message):
-    room = session.get('room')
+def joined(message): # when a user joined to a room, i.e. socket emits joined, notify all
+    room = session.get('room') 
     join_room(room)
     emit('status', {'msg': session.get('username') + ' has entered the room.'}, room=room)
 
 
 @socketio.on('text', namespace='/chat')
-def text(message):
+def text(message): # when a user sent messages to a room, i.e. socket emits text, first decrypt message with room_key then check hmac if matches notify all
     room = session.get('room')
     new_message = decryptAES(session.get('room_key'), message['msg']).decode()
     json_resp = json.loads(new_message)
@@ -25,7 +25,7 @@ def text(message):
 
 
 @socketio.on('left', namespace='/chat')
-def left(message):
+def left(message): # when a user left a room, i.e. socket emits left, notify all
     room = session.get('room')
     leave_room(room)
     emit('status', {'msg': session.get('username') + ' has left the room.'}, room=room)

@@ -14,5 +14,6 @@ class UsernameForm(FlaskForm):
 
 class PasswordForm(FlaskForm):
     salt = ""
-    challenge = ""
+    challenge = StringField('Challenge', validators=[Required()])
+    room = StringField('Room', validators=[Required()])
     submit = SubmitField('Send')
